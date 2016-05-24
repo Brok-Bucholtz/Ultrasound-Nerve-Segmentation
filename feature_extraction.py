@@ -21,8 +21,17 @@ def _get_rectangle_masks():
     return rectangle_masks
 
 
+def _get_mask_labels():
+    mask_labels = []
+    for image in _get_masks():
+        mask_labels.append((image.filename, 255 in image.getdata()))
+
+    return mask_labels
+
+
 def run():
     print _get_rectangle_masks()
+    print _get_mask_labels()
 
 
 if __name__ == '__main__':
