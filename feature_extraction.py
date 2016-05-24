@@ -2,11 +2,14 @@ from PIL import Image
 import glob
 
 
-def _get_rectangle_masks():
+def _get_masks():
     TRAIN_MASKS = './data/train/*_mask.tif'
+    return [Image.open(file_name) for file_name in glob.glob(TRAIN_MASKS)]
+
+
+def _get_rectangle_masks():
     rectangle_masks = []
-    for file_name in glob.glob(TRAIN_MASKS):
-        image = Image.open(file_name)
+    for image in _get_masks():
         rectangle_mask = ((0,0), (0,0))
         mask_coord = [(i-image.width*(i/image.width), i/image.width) for i, pixel in enumerate(image.getdata()) if pixel != 0]
 
