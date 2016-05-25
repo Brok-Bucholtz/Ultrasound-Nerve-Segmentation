@@ -27,12 +27,3 @@ def _get_mask_labels():
         mask_labels.append((image.filename, 255 in image.getdata()))
 
     return mask_labels
-
-
-def run():
-    print _get_rectangle_masks()
-    print _get_mask_labels()
-
-
-if __name__ == '__main__':
-    run()
