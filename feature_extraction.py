@@ -40,9 +40,8 @@ def get_detection_data():
     with tqdm(desc='Extracting Features', total=len(features_labels), unit='image') as progress_bar:
         for feature, label in features_labels:
             progress_bar.update()
-            features.append(list(feature)[:784])
-            extracted_label = [1.0, 0.0] if 255 in label else [0.0, 1.0]
-            labels.append(extracted_label)
+            features.append(list(feature))
+            labels.append(255 in label)
 
     return features, labels
 
