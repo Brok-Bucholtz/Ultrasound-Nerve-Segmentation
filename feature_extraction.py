@@ -46,3 +46,16 @@ def get_detection_data():
     return features, labels
 
 
+def get_rectangle_masks():
+    IMAGE_WIDTH = 580
+    rectangle_masks = []
+    features_labels = _get_feature_label_images()
+
+    with tqdm(desc='Extracting Features', total=len(features_labels), unit='image') as progress_bar:
+        for _, mask in features_labels:
+            progress_bar.update()
+            mask_coord = [(i-IMAGE_WIDTH*(i/IMAGE_WIDTH), i/IMAGE_WIDTH) for i, pixel in enumerate(mask) if pixel != 0]
+            if mask_coord:
+                mask_xs, mask_ys = zip(*mask_coord)
+                rectangle_masks.append(((min(mask_xs), mask_ys[0]), (max(mask_xs), mask_ys[len(mask_ys)-1])))
+    return rectangle_masks
