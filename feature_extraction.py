@@ -1,5 +1,6 @@
 import re
 import glob
+import numpy as np
 
 from PIL import Image
 from tqdm import tqdm
@@ -61,3 +62,35 @@ def get_rectangle_masks():
                 mask_xs, mask_ys = zip(*mask_coord)
                 rectangle_masks.append(((min(mask_xs), mask_ys[0]), (max(mask_xs), mask_ys[len(mask_ys)-1])))
     return rectangle_masks
+
+
+def get_sub_samples(height, width):
+    IMAGE_HEIGHT = 420
+    IMAGE_WIDTH = 580
+    features = []
+    labels = []
+
+    features_labels = zip(*_get_feature_label_images())
+    with tqdm(desc='Extracting Features and Labels', total=len(features_labels), unit='image') as progress_bar:
+        for feature, label in features_labels:
+            feature = np.array(feature).reshape((IMAGE_HEIGHT, IMAGE_WIDTH))
+            label = np.array(label).reshape((IMAGE_HEIGHT, IMAGE_WIDTH))
+            progress_bar.update()
+
+            # Get Inner Rectangles
+            for height_i in range(0, IMAGE_HEIGHT-height/2, height/2):
+                for width_i in range(0, IMAGE_WIDTH-width/2, width/2):
+                    # Make sure the Rectangle size is always height by width
+                    if IMAGE_HEIGHT-height_i < height:
+                        height_i = IMAGE_HEIGHT-height
+                    if IMAGE_WIDTH - width_i < width:
+                        width_i = IMAGE_WIDTH - width
+
+                    features.append(feature[height_i:height_i+height, width_i:width_i+width].flatten())
+                    # Set the label as the percentage of masked positive pixels to number of pixels in the rectangle
+                    unique_counts = dict(zip(*np.unique(
+                        label[height_i:height_i+height, width_i:width_i+width],
+                        return_counts=True)))
+                    labels.append(float(unique_counts.get(255, 0))/(height*width))
+
+    return features, labels
