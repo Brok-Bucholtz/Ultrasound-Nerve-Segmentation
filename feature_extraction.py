@@ -49,7 +49,20 @@ def get_detection_data():
     return features, new_labels
 
 
+def _find_coord_mask(mask, height, width):
+    rectangel = [[0,0], [0,0]]
+    mask_transpose = np.transpose(np.reshape(mask, (height, width))).flatten()
+
+    rectangel[0][0] = next((i for i, x in enumerate(mask_transpose) if x), 0) / height
+    rectangel[0][1] = next((i for i, x in enumerate(mask) if x), 0) / width
+    rectangel[1][0] = width - (next((i for i, x in enumerate(reversed(mask_transpose)) if x), len(mask)) / height)
+    rectangel[1][1] = height-(next((i for i, x in enumerate(reversed(mask)) if x), len(mask)) / width)
+
+    return rectangel
+
+
 def get_rectangle_masks():
+    IMAGE_HEIGHT = 420
     IMAGE_WIDTH = 580
     rectangle_masks = []
     _, labels = _get_feature_label_images()
@@ -57,10 +70,9 @@ def get_rectangle_masks():
     with tqdm(desc='Extracting Labels', total=len(labels), unit='image') as progress_bar:
         for label in labels:
             progress_bar.update()
-            mask_coord = [(i-IMAGE_WIDTH*(i/IMAGE_WIDTH), i/IMAGE_WIDTH) for i, pixel in enumerate(label) if pixel != 0]
-            if mask_coord:
-                mask_xs, mask_ys = zip(*mask_coord)
-                rectangle_masks.append(((min(mask_xs), mask_ys[0]), (max(mask_xs), mask_ys[len(mask_ys)-1])))
+            rectangle_coords = _find_coord_mask(label, IMAGE_HEIGHT, IMAGE_WIDTH)
+            if rectangle_coords[1][0] and rectangle_coords[1][1]:
+                rectangle_masks.append(rectangle_coords)
     return rectangle_masks
 
 
