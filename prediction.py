@@ -32,6 +32,9 @@ def _run_svm_detection():
 
 
 if __name__ == '__main__':
+    # KNN Detection Model
+    # F1 score for training set: 0.997677119628
+    # F1 score for test set: 0.696686491079
     _run_knn_detection()
 
     # SVM Detection Model
