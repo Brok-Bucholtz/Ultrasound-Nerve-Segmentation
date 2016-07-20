@@ -4,7 +4,7 @@ import numpy as np
 
 from PIL import Image
 from tqdm import tqdm
-from os.path import basename, dirname, join, splitext
+from os.path import basename, dirname, join, splitext, isfile
 
 
 def _get_file_root_name(file_path):
@@ -21,18 +21,34 @@ def _get_rootname(filename):
 
 
 def _get_feature_label_images():
-    TRAIN_FILES = './data/train/*.tif'
-    features = []
-    labels = []
+    MAX_IMAGE_CHUNK = 2000
+    IMAGE_SIZE = 243600
+    ARRAY_FEATURE_PATH = './data/train/features.npy'
+    ARRAY_LABEL_PATH = './data/train/labels.npy'
+    TRAIN_GLOB_PATH = './data/train/*.tif'
 
-    image_paths = [filename for filename in glob.glob(TRAIN_FILES) if not _get_rootname(filename).endswith('_mask')]
-    with tqdm(desc='Reading Images from Disk', total=len(image_paths), unit='image') as progress_bar:
-        for filename in image_paths:
-            progress_bar.update()
-            with Image.open(filename) as image:
-                features.append([_normalization_pixel(pixel) for pixel in image.getdata()])
-            with Image.open(join(dirname(filename), _get_rootname(filename)+'_mask.tif')) as image:
-                labels.append(list(image.getdata()))
+    if not isfile(ARRAY_FEATURE_PATH) or not isfile(ARRAY_LABEL_PATH):
+        image_paths = [filename for filename in glob.glob(TRAIN_GLOB_PATH) if not _get_rootname(filename).endswith('_mask')]
+        with tqdm(desc='Reading Images from Disk', total=len(image_paths), unit='image') as progress_bar:
+            for image_path_chunks in [image_paths[i:i+MAX_IMAGE_CHUNK] for i in xrange(0, len(image_paths), MAX_IMAGE_CHUNK)]:
+                feature_chunk = np.empty((len(image_path_chunks), IMAGE_SIZE))
+                label_chunk = np.empty((len(image_path_chunks), IMAGE_SIZE))
+
+                for file_i, filename in enumerate(image_path_chunks):
+                    progress_bar.update()
+                    with Image.open(filename) as image:
+                        feature_chunk[file_i] = [_normalization_pixel(pixel) for pixel in image.getdata()]
+                    with Image.open(join(dirname(filename), _get_rootname(filename)+'_mask.tif')) as image:
+                        label_chunk[file_i] = image.getdata()
+
+                with open(ARRAY_FEATURE_PATH, 'a') as feature_file:
+                    np.save(feature_file, feature_chunk)
+                with open(ARRAY_LABEL_PATH, 'a') as label_file:
+                    np.save(label_file, label_chunk)
+
+    print 'Loading Image Array...'
+    features = np.load(ARRAY_FEATURE_PATH)
+    labels = np.load(ARRAY_LABEL_PATH)
 
     return features, labels
 
