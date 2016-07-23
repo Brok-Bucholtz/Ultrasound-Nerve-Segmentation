@@ -21,8 +21,7 @@ def _get_rootname(filename):
 
 
 def _get_feature_label_images():
-    MAX_IMAGE_CHUNK = 2000
-    IMAGE_SIZE = 243600
+    IMAGE_SIZE = 243600  # 580 by 420
     ARRAY_FEATURE_PATH = './data/train/features.npy'
     ARRAY_LABEL_PATH = './data/train/labels.npy'
     TRAIN_GLOB_PATH = './data/train/*.tif'
@@ -30,25 +29,24 @@ def _get_feature_label_images():
     if not isfile(ARRAY_FEATURE_PATH) or not isfile(ARRAY_LABEL_PATH):
         image_paths = [filename for filename in glob.glob(TRAIN_GLOB_PATH) if not _get_rootname(filename).endswith('_mask')]
         with tqdm(desc='Reading Images from Disk', total=len(image_paths), unit='image') as progress_bar:
-            for image_path_chunks in [image_paths[i:i+MAX_IMAGE_CHUNK] for i in xrange(0, len(image_paths), MAX_IMAGE_CHUNK)]:
-                feature_chunk = np.empty((len(image_path_chunks), IMAGE_SIZE))
-                label_chunk = np.empty((len(image_path_chunks), IMAGE_SIZE))
+            features = np.empty((len(image_paths), IMAGE_SIZE), dtype=np.float32)
+            labels = np.empty((len(image_paths), IMAGE_SIZE), dtype=np.bool)
 
-                for file_i, filename in enumerate(image_path_chunks):
-                    progress_bar.update()
-                    with Image.open(filename) as image:
-                        feature_chunk[file_i] = [_normalization_pixel(pixel) for pixel in image.getdata()]
-                    with Image.open(join(dirname(filename), _get_rootname(filename)+'_mask.tif')) as image:
-                        label_chunk[file_i] = image.getdata()
+            for file_i, filename in enumerate(image_paths):
+                progress_bar.update()
+                with Image.open(filename) as image:
+                    features[file_i] = [_normalization_pixel(pixel) for pixel in image.getdata()]
+                with Image.open(join(dirname(filename), _get_rootname(filename)+'_mask.tif')) as image:
+                    labels[file_i] = image.getdata()
 
-                with open(ARRAY_FEATURE_PATH, 'a') as feature_file:
-                    np.save(feature_file, feature_chunk)
-                with open(ARRAY_LABEL_PATH, 'a') as label_file:
-                    np.save(label_file, label_chunk)
-
-    print 'Loading Image Array...'
-    features = np.load(ARRAY_FEATURE_PATH)
-    labels = np.load(ARRAY_LABEL_PATH)
+            with open(ARRAY_FEATURE_PATH, 'a') as feature_file:
+                np.save(feature_file, features)
+            with open(ARRAY_LABEL_PATH, 'a') as label_file:
+                np.save(label_file, labels)
+    else:
+        print 'Loading Image Array...'
+        features = np.load(ARRAY_FEATURE_PATH)
+        labels = np.load(ARRAY_LABEL_PATH)
 
     return features, labels
 
@@ -60,7 +58,7 @@ def get_detection_data():
     with tqdm(desc='Extracting Labels', total=len(labels), unit='image') as progress_bar:
         for label in labels:
             progress_bar.update()
-            new_labels.append(255 in label)
+            new_labels.append(True in label)
 
     return features, new_labels
 
@@ -119,6 +117,6 @@ def get_sub_samples(height, width):
                     unique_counts = dict(zip(*np.unique(
                         label[height_i:height_i+height, width_i:width_i+width],
                         return_counts=True)))
-                    labels.append(float(unique_counts.get(255, 0))/(height*width))
+                    labels.append(float(unique_counts.get(True, 0))/(height*width))
 
     return features, labels
