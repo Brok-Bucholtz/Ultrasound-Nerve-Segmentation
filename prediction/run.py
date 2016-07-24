@@ -3,6 +3,7 @@ from sklearn.metrics import f1_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from feature_extraction import get_detection_data
+from prediction.cnn import run_cnn_detection
 
 
 def _run_knn_detection():
@@ -41,3 +42,8 @@ if __name__ == '__main__':
     # F1 score for training set: 0.770956684325
     # F1 score for test set: 0.682745825603
     _run_svm_detection()
+
+    # CNN Detection Model
+    # F1 score for training set: 0.535408901557
+    # F1 score for test set: 0.577373211964
+    run_cnn_detection()
