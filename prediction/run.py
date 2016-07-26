@@ -1,5 +1,4 @@
 import tensorflow as tf
-import cv2
 from sklearn import cross_validation
 from sklearn.metrics import f1_score
 from sklearn.neighbors import KNeighborsClassifier
@@ -38,22 +37,20 @@ def _run_svm_detection():
 
 def run_cnn_detection():
     batch_size = 16
-    image_width = 58  # 580
-    image_height = 42  # 420
+    image_shape = (580, 420)
     n_classes = 2
     dropout = 0.75
 
-    model_input = tf.placeholder(tf.float32, [None, image_width, image_height])
+    model_input = tf.placeholder(tf.float32, [None, image_shape[0]*image_shape[1]])
     model_output = tf.placeholder(tf.float32, [None, n_classes])
     keep_prob = tf.placeholder(tf.float32)
 
     x_all, y_all = get_detection_data()
-    x_all = [cv2.resize(image, (image_height, image_width), interpolation=cv2.INTER_CUBIC) for image in x_all]
     y_all = [[float(y_element), float(not y_element)] for y_element in y_all]
 
     x_train, x_test, y_train, y_test = cross_validation.train_test_split(x_all, y_all, test_size=0.25)
 
-    prediction, optimizer = create_cnn(model_input, model_output, dropout, (image_width, image_height), n_classes)
+    prediction, optimizer = create_cnn(model_input, model_output, dropout, image_shape, 10, n_classes)
 
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())

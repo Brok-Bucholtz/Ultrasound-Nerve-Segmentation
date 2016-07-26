@@ -12,10 +12,15 @@ def _create_layer(layer_input, weight, bias):
         padding='SAME')
 
 
-def create_cnn(model_input, model_output, dropout, image_shape, n_classes):
+def create_cnn(model_input, model_output, dropout, image_shape, resize_dividend, n_classes):
     learning_rate = 0.001
 
     model_input = tf.reshape(model_input, shape=[-1, image_shape[0], image_shape[1], 1])
+    model_input = tf.image.resize_images(
+        model_input,
+        image_shape[0]/resize_dividend,
+        image_shape[1]/resize_dividend,
+        tf.image.ResizeMethod.BICUBIC)
 
     conv1 = _create_layer(
         model_input,
