@@ -36,6 +36,7 @@ def _run_svm_detection():
 
 
 def run_cnn_detection():
+    SUMMARY_PATH = '/tmp/ultrasound-never-segmentation/summary'
     learning_rate = 0.001
     batch_size = 16
     image_shape = (580, 420)
@@ -57,7 +58,14 @@ def run_cnn_detection():
     cost = tf.reduce_mean(cost)
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
+    tf.scalar_summary('dropout', dropout)
+    correct_prediction = tf.equal(tf.argmax(cnn_model, 1), tf.argmax(model_output, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    tf.scalar_summary('accuracy', accuracy)
+
     with tf.Session() as sess:
+        merged = tf.merge_all_summaries()
+        train_writer = tf.train.SummaryWriter(SUMMARY_PATH + '/train',sess.graph)
         sess.run(tf.initialize_all_variables())
 
         print "Training CNN..."
@@ -66,7 +74,11 @@ def run_cnn_detection():
             batch_x = x_train[front_batch: front_batch + batch_size]
             batch_y = y_train[front_batch: front_batch + batch_size]
 
-            sess.run(optimizer, feed_dict={model_input: batch_x, model_output: batch_y, dropout: keep_prob})
+            summary, _ = sess.run([merged, optimizer], feed_dict={
+                model_input: batch_x,
+                model_output: batch_y,
+                dropout: keep_prob})
+            train_writer.add_summary(summary, batch_i)
 
         print "F1 score for train set: {}".format(f1_score(
             [y[1] for y in y_train],
