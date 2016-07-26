@@ -70,10 +70,10 @@ def run_cnn_detection():
 
         print "F1 score for train set: {}".format(f1_score(
             [y[1] for y in y_train],
-            [sess.run(prediction, feed_dict={model_input: [input], dropout: keep_prob})[0] for input in x_train]))
+            [sess.run(prediction, feed_dict={model_input: [input], dropout: 1.0})[0] for input in x_train]))
         print "F1 score for test set: {}".format(f1_score(
             [y[1] for y in y_test],
-            [sess.run(prediction, feed_dict={model_input: [input], dropout: keep_prob})[0] for input in x_test]))
+            [sess.run(prediction, feed_dict={model_input: [input], dropout: 1.0})[0] for input in x_test]))
 
 
 if __name__ == '__main__':
