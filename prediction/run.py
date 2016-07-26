@@ -6,7 +6,7 @@ from sklearn.svm import SVC
 from math import ceil
 
 from feature_extraction import get_detection_data
-from prediction.cnn import create_cnn, get_predictions
+from prediction.cnn import create_cnn
 
 
 def _run_knn_detection():
@@ -36,21 +36,26 @@ def _run_svm_detection():
 
 
 def run_cnn_detection():
+    learning_rate = 0.001
     batch_size = 16
     image_shape = (580, 420)
     n_classes = 2
-    dropout = 0.75
+    keep_prob = 0.75
 
     model_input = tf.placeholder(tf.float32, [None, image_shape[0]*image_shape[1]])
     model_output = tf.placeholder(tf.float32, [None, n_classes])
-    keep_prob = tf.placeholder(tf.float32)
+    dropout = tf.placeholder(tf.float32)
 
     x_all, y_all = get_detection_data()
     y_all = [[float(y_element), float(not y_element)] for y_element in y_all]
-
     x_train, x_test, y_train, y_test = cross_validation.train_test_split(x_all, y_all, test_size=0.25)
 
-    prediction, optimizer = create_cnn(model_input, model_output, dropout, image_shape, 10, n_classes)
+    cnn_model = create_cnn(model_input, dropout, image_shape, 10, n_classes)
+
+    prediction = tf.argmax(cnn_model, 1)
+    cost = tf.nn.softmax_cross_entropy_with_logits(cnn_model, model_output)
+    cost = tf.reduce_mean(cost)
+    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
@@ -61,14 +66,14 @@ def run_cnn_detection():
             batch_x = x_train[front_batch: front_batch + batch_size]
             batch_y = y_train[front_batch: front_batch + batch_size]
 
-            sess.run(optimizer, feed_dict={model_input: batch_x, model_output: batch_y, keep_prob: dropout})
+            sess.run(optimizer, feed_dict={model_input: batch_x, model_output: batch_y, dropout: keep_prob})
 
         print "F1 score for train set: {}".format(f1_score(
             [y[1] for y in y_train],
-            get_predictions(sess, prediction, model_input, x_train)))
+            [sess.run(prediction, feed_dict={model_input: [input], dropout: keep_prob})[0] for input in x_train]))
         print "F1 score for test set: {}".format(f1_score(
             [y[1] for y in y_test],
-            get_predictions(sess, prediction, model_input, x_test)))
+            [sess.run(prediction, feed_dict={model_input: [input], dropout: keep_prob})[0] for input in x_test]))
 
 
 if __name__ == '__main__':
