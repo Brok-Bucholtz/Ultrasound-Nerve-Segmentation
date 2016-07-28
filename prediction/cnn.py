@@ -24,6 +24,29 @@ def _create_transpose_layer(layer_input, output_shape, transpose_weight, bias):
 
 
 def create_cnn(model_input, dropout, image_shape, resize_dividend, n_classes):
+    weights = {
+        'conv1': tf.Variable(tf.random_normal([3, 3, 1, 16])),
+        'conv2': tf.Variable(tf.random_normal([3, 3, 16, 32])),
+        'conv3': tf.Variable(tf.random_normal([3, 3, 32, 64])),
+        'conv4': tf.Variable(tf.random_normal([3, 3, 64, 128])),
+        'conv5': tf.Variable(tf.random_normal([3, 3, 128, 256])),
+        'conv6': tf.Variable(tf.random_normal([2, 2, 128, 256])),
+        'conv7': tf.Variable(tf.random_normal([4, 4, 64, 128])),
+        'conv8': tf.Variable(tf.random_normal([8, 8, 32, 64])),
+        'conv9': tf.Variable(tf.random_normal([16, 16, 16, 32]))
+    }
+    biases = {
+        'conv1': tf.Variable(tf.random_normal([16])),
+        'conv2': tf.Variable(tf.random_normal([32])),
+        'conv3': tf.Variable(tf.random_normal([64])),
+        'conv4': tf.Variable(tf.random_normal([128])),
+        'conv5': tf.Variable(tf.random_normal([256])),
+        'conv6': tf.Variable(tf.random_normal([128])),
+        'conv7': tf.Variable(tf.random_normal([64])),
+        'conv8': tf.Variable(tf.random_normal([32])),
+        'conv9': tf.Variable(tf.random_normal([16]))
+    }
+
     model_input = tf.reshape(model_input, shape=[-1, image_shape[0], image_shape[1], 1])
     tf.image_summary('Input', model_input)
     model_input = tf.image.resize_images(
@@ -35,44 +58,44 @@ def create_cnn(model_input, dropout, image_shape, resize_dividend, n_classes):
 
     conv1 = _create_maxpool_layer(
         model_input,
-        tf.Variable(tf.random_normal([3, 3, 1, 16])),
-        tf.Variable(tf.random_normal([16])))
+        weights['conv1'],
+        biases['conv1'])
     conv2 = _create_maxpool_layer(
         conv1,
-        tf.Variable(tf.random_normal([3, 3, 16, 32])),
-        tf.Variable(tf.random_normal([32])))
+        weights['conv2'],
+        biases['conv2'])
     conv3 = _create_maxpool_layer(
         conv2,
-        tf.Variable(tf.random_normal([3, 3, 32, 64])),
-        tf.Variable(tf.random_normal([64])))
+        weights['conv3'],
+        biases['conv3'])
     conv4 = _create_maxpool_layer(
         conv3,
-        tf.Variable(tf.random_normal([3, 3, 64, 128])),
-        tf.Variable(tf.random_normal([128])))
+        weights['conv4'],
+        biases['conv4'])
     conv5 = _create_maxpool_layer(
         conv4,
-        tf.Variable(tf.random_normal([3, 3, 128, 256])),
-        tf.Variable(tf.random_normal([256])))
+        weights['conv5'],
+        biases['conv5'])
     conv6 = _create_transpose_layer(
         conv5,
         [4, 4, 128],
-        tf.Variable(tf.random_normal([2, 2, 128, 256])),
-        tf.Variable(tf.random_normal([128])))
+        weights['conv6'],
+        biases['conv6'])
     conv7 = _create_transpose_layer(
         conv6,
         [8, 8, 64],
-        tf.Variable(tf.random_normal([4, 4, 64, 128])),
-        tf.Variable(tf.random_normal([64])))
+        weights['conv7'],
+        biases['conv7'])
     conv8 = _create_transpose_layer(
         conv7,
         [16, 16, 32],
-        tf.Variable(tf.random_normal([8, 8, 32, 64])),
-        tf.Variable(tf.random_normal([32])))
+        weights['conv8'],
+        biases['conv8'])
     conv9 = _create_transpose_layer(
         conv8,
         [32, 32, 16],
-        tf.Variable(tf.random_normal([16, 16, 16, 32])),
-        tf.Variable(tf.random_normal([16])))
+        weights['conv9'],
+        biases['conv9'])
 
     fc1 = tf.reshape(conv9, [-1, 32*32*16])
     fc1 = tf.matmul(fc1, tf.Variable(tf.random_normal([32*32*16, 16])))
