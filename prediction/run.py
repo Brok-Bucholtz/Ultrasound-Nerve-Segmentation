@@ -38,7 +38,7 @@ def _run_svm_detection():
 def run_cnn_detection():
     SUMMARY_PATH = '/tmp/ultrasound-never-segmentation/summary'
     learning_rate = 0.001
-    batch_size = 16
+    batch_size = 161
     image_shape = (420, 580)
     n_classes = 2
     keep_prob = 0.75
