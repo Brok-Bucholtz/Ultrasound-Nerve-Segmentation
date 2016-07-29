@@ -48,16 +48,14 @@ def create_cnn(model_input, dropout, image_shape, resize_dividend, n_classes):
     }
 
     model_input = tf.reshape(model_input, shape=[-1, image_shape[0], image_shape[1], 1])
-    tf.image_summary('Input', model_input)
-    model_input = tf.image.resize_images(
+    model_input_resize = tf.image.resize_images(
         model_input,
         image_shape[0]/resize_dividend,
         image_shape[1]/resize_dividend,
         tf.image.ResizeMethod.BICUBIC)
-    tf.image_summary('Resize', model_input)
 
     conv1 = _create_maxpool_layer(
-        model_input,
+        model_input_resize,
         weights['conv1'],
         biases['conv1'])
     conv2 = _create_maxpool_layer(
@@ -105,5 +103,9 @@ def create_cnn(model_input, dropout, image_shape, resize_dividend, n_classes):
 
     out = tf.matmul(fc1, tf.random_normal([16, n_classes]))
     out = tf.add(out, tf.random_normal([n_classes]))
+
+    # Tensorboard
+    tf.image_summary('Input', model_input)
+    tf.image_summary('Resize', model_input_resize)
 
     return out
