@@ -1,23 +1,65 @@
 import tensorflow as tf
 from sklearn import cross_validation
-from sklearn.metrics import f1_score
+from sklearn.learning_curve import learning_curve
+from sklearn.metrics import f1_score, make_scorer
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from math import ceil
+import numpy as np
+import matplotlib.pyplot as plt
 
 from feature_extraction import get_detection_data
 from prediction.cnn import create_cnn
 
 
+def _plot_learning_curve(model, features, labels, title='', scoring=None):
+    plt.figure()
+    plt.title(title)
+    plt.xlabel("Training examples")
+    plt.ylabel("Score")
+    train_sizes, train_scores, test_scores = learning_curve(model, features, labels, scoring=scoring)
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+    test_scores_mean = np.mean(test_scores, axis=1)
+    test_scores_std = np.std(test_scores, axis=1)
+    plt.grid()
+
+    plt.fill_between(
+        train_sizes,
+        train_scores_mean - train_scores_std,
+        train_scores_mean + train_scores_std,
+        alpha=0.1,
+        color="r")
+    plt.fill_between(
+        train_sizes,
+        test_scores_mean - test_scores_std,
+        test_scores_mean + test_scores_std,
+        alpha=0.1,
+        color="g")
+    plt.plot(
+        train_sizes,
+        train_scores_mean,
+        'o-',
+        color="r",
+        label="Training score")
+    plt.plot(
+        train_sizes,
+        test_scores_mean,
+        'o-',
+        color="g",
+        label="Cross-validation score")
+    plt.legend(loc="best")
+    plt.show()
+
+
 def _run_knn_detection():
     x_all, y_all = get_detection_data()
     x_train, x_test, y_train, y_test = cross_validation.train_test_split(x_all, y_all, test_size=0.25)
-
     clf = KNeighborsClassifier(2, 'distance')
+
     print "Training KNN..."
+    _plot_learning_curve(clf, x_train, y_train, 'KNN Learning Curve', make_scorer(f1_score))
     clf.fit(x_train, y_train)
-    print "Predicting Training Set..."
-    print "F1 score for training set: {}".format(f1_score(y_train, clf.predict(x_train)))
     print "Predicting Test Set..."
     print "F1 score for test set: {}".format(f1_score(y_test, clf.predict(x_test)))
 
@@ -28,9 +70,8 @@ def _run_svm_detection():
     clf = SVC(C=9)
 
     print "Training SVM..."
+    _plot_learning_curve(clf, x_train, y_train, 'SVM Learning Curve', make_scorer(f1_score))
     clf.fit(x_train, y_train)
-    print "Predicting Training Set..."
-    print "F1 score for training set: {}".format(f1_score(y_train, clf.predict(x_train)))
     print "Predicting Test Set..."
     print "F1 score for test set: {}".format(f1_score(y_test, clf.predict(x_test)))
 
