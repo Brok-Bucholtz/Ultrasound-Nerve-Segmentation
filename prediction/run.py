@@ -13,6 +13,8 @@ from prediction.cnn import create_cnn
 
 
 def _plot_learning_curve(model, features, labels, title='', scoring=None):
+    last_backend = plt.get_backend()
+    plt.switch_backend('Agg')
     plt.figure()
     plt.title(title)
     plt.xlabel("Training examples")
@@ -49,7 +51,8 @@ def _plot_learning_curve(model, features, labels, title='', scoring=None):
         color="g",
         label="Cross-validation score")
     plt.legend(loc="best")
-    plt.show()
+    plt.savefig(title + '.png')
+    plt.switch_backend(last_backend)
 
 
 def _run_knn_detection():
@@ -58,7 +61,7 @@ def _run_knn_detection():
     clf = KNeighborsClassifier(2, 'distance')
 
     print "Training KNN..."
-    _plot_learning_curve(clf, x_train, y_train, 'KNN Learning Curve', make_scorer(f1_score))
+    _plot_learning_curve(clf, x_train, y_train, 'KNN-Learning-Curve', make_scorer(f1_score))
     clf.fit(x_train, y_train)
     print "Predicting Test Set..."
     print "F1 score for test set: {}".format(f1_score(y_test, clf.predict(x_test)))
@@ -70,7 +73,7 @@ def _run_svm_detection():
     clf = SVC(C=9)
 
     print "Training SVM..."
-    _plot_learning_curve(clf, x_train, y_train, 'SVM Learning Curve', make_scorer(f1_score))
+    _plot_learning_curve(clf, x_train, y_train, 'SVM-Learning-Curve', make_scorer(f1_score))
     clf.fit(x_train, y_train)
     print "Predicting Test Set..."
     print "F1 score for test set: {}".format(f1_score(y_test, clf.predict(x_test)))
