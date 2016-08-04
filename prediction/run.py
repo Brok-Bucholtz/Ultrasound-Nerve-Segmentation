@@ -127,7 +127,7 @@ def _run_cnn_detection(x_train, x_test, y_train, y_test, accuracy_function):
             [sess.run(prediction, feed_dict={model_input: [input], dropout: 1.0})[0] for input in x_test]))
 
 
-if __name__ == '__main__':
+def run():
     x_train, x_test, y_train, y_test = cross_validation.train_test_split(*get_detection_data(), test_size=0.25)
     accuracy_function = f1_score
     # KNN Detection Model
@@ -144,3 +144,7 @@ if __name__ == '__main__':
     # F1 score for training set: 0.535408901557
     # F1 score for test set: 0.577373211964
     _run_cnn_detection(x_train, x_test, y_train, y_test, accuracy_function)
+
+
+if __name__ == '__main__':
+    run()
