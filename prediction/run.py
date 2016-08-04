@@ -55,29 +55,27 @@ def _plot_learning_curve(model, features, labels, title='', scoring=None):
     plt.switch_backend(last_backend)
 
 
-def _run_knn_detection():
-    x_train, x_test, y_train, y_test = cross_validation.train_test_split(*get_detection_data(), test_size=0.25)
+def _run_knn_detection(x_train, x_test, y_train, y_test, accuracy_function):
     clf = KNeighborsClassifier(2, 'distance')
 
     print "Training KNN..."
-    _plot_learning_curve(clf, x_train, y_train, 'KNN-Learning-Curve', make_scorer(f1_score))
+    _plot_learning_curve(clf, x_train, y_train, 'KNN-Learning-Curve', make_scorer(accuracy_function))
     clf.fit(x_train, y_train)
     print "Predicting Test Set..."
-    print "F1 score for test set: {}".format(f1_score(y_test, clf.predict(x_test)))
+    print "Score for test set: {}".format(accuracy_function(y_test, clf.predict(x_test)))
 
 
-def _run_svm_detection():
-    x_train, x_test, y_train, y_test = cross_validation.train_test_split(*get_detection_data(), test_size=0.25)
+def _run_svm_detection(x_train, x_test, y_train, y_test, accuracy_function):
     clf = SVC(C=9)
 
     print "Training SVM..."
-    _plot_learning_curve(clf, x_train, y_train, 'SVM-Learning-Curve', make_scorer(f1_score))
+    _plot_learning_curve(clf, x_train, y_train, 'SVM-Learning-Curve', make_scorer(accuracy_function))
     clf.fit(x_train, y_train)
     print "Predicting Test Set..."
-    print "F1 score for test set: {}".format(f1_score(y_test, clf.predict(x_test)))
+    print "Score for test set: {}".format(accuracy_function(y_test, clf.predict(x_test)))
 
 
-def _run_cnn_detection():
+def _run_cnn_detection(x_train, x_test, y_train, y_test, accuracy_function):
     SUMMARY_PATH = '/tmp/ultrasound-never-segmentation/summary'
     learning_rate = 0.001
     batch_size = 161
@@ -89,9 +87,8 @@ def _run_cnn_detection():
     model_output = tf.placeholder(tf.float32, [None, n_classes])
     dropout = tf.placeholder(tf.float32)
 
-    x_all, y_all = get_detection_data()
-    y_all = [[float(y_element), float(not y_element)] for y_element in y_all]
-    x_train, x_test, y_train, y_test = cross_validation.train_test_split(x_all, y_all, test_size=0.25)
+    y_train = [[float(y_element), float(not y_element)] for y_element in y_train]
+    y_test = [[float(y_element), float(not y_element)] for y_element in y_test]
 
     cnn_model = create_cnn(model_input, dropout, image_shape, n_classes)
 
@@ -122,26 +119,28 @@ def _run_cnn_detection():
                 dropout: keep_prob})
             train_writer.add_summary(summary, batch_i)
 
-        print "F1 score for train set: {}".format(f1_score(
+        print "F1 score for train set: {}".format(accuracy_function(
             [y[1] for y in y_train],
             [sess.run(prediction, feed_dict={model_input: [input], dropout: 1.0})[0] for input in x_train]))
-        print "F1 score for test set: {}".format(f1_score(
+        print "F1 score for test set: {}".format(accuracy_function(
             [y[1] for y in y_test],
             [sess.run(prediction, feed_dict={model_input: [input], dropout: 1.0})[0] for input in x_test]))
 
 
 if __name__ == '__main__':
+    x_train, x_test, y_train, y_test = cross_validation.train_test_split(*get_detection_data(), test_size=0.25)
+    accuracy_function = f1_score
     # KNN Detection Model
     # F1 score for training set: 0.997677119628
     # F1 score for test set: 0.696686491079
-    _run_knn_detection()
+    _run_knn_detection(x_train, x_test, y_train, y_test, accuracy_function)
 
     # SVM Detection Model
     # F1 score for training set: 0.770956684325
     # F1 score for test set: 0.682745825603
-    _run_svm_detection()
+    _run_svm_detection(x_train, x_test, y_train, y_test, accuracy_function)
 
     # CNN Detection Model
     # F1 score for training set: 0.535408901557
     # F1 score for test set: 0.577373211964
-    _run_cnn_detection()
+    _run_cnn_detection(x_train, x_test, y_train, y_test, accuracy_function)
