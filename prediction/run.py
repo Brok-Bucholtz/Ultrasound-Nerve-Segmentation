@@ -104,7 +104,7 @@ def _run_cnn_detection(x_train, x_test, y_train, y_test, accuracy_function):
 
     with tf.Session() as sess:
         merged = tf.merge_all_summaries()
-        train_writer = tf.train.SummaryWriter(SUMMARY_PATH + '/train',sess.graph)
+        train_writer = tf.train.SummaryWriter(SUMMARY_PATH + '/train', sess.graph)
         sess.run(tf.initialize_all_variables())
 
         print "Training CNN..."
