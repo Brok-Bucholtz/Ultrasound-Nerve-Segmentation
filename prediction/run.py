@@ -77,7 +77,7 @@ def _run_svm_detection():
     print "F1 score for test set: {}".format(f1_score(y_test, clf.predict(x_test)))
 
 
-def run_cnn_detection():
+def _run_cnn_detection():
     SUMMARY_PATH = '/tmp/ultrasound-never-segmentation/summary'
     learning_rate = 0.001
     batch_size = 161
@@ -144,4 +144,4 @@ if __name__ == '__main__':
     # CNN Detection Model
     # F1 score for training set: 0.535408901557
     # F1 score for test set: 0.577373211964
-    run_cnn_detection()
+    _run_cnn_detection()
