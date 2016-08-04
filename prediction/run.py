@@ -81,7 +81,7 @@ def run_cnn_detection():
     SUMMARY_PATH = '/tmp/ultrasound-never-segmentation/summary'
     learning_rate = 0.001
     batch_size = 161
-    image_shape = (420, 580)
+    image_shape = (42, 58)
     n_classes = 2
     keep_prob = 0.75
 
@@ -93,7 +93,7 @@ def run_cnn_detection():
     y_all = [[float(y_element), float(not y_element)] for y_element in y_all]
     x_train, x_test, y_train, y_test = cross_validation.train_test_split(x_all, y_all, test_size=0.25)
 
-    cnn_model = create_cnn(model_input, dropout, image_shape, 10, n_classes)
+    cnn_model = create_cnn(model_input, dropout, image_shape, n_classes)
 
     prediction = tf.argmax(cnn_model, 1)
     cost = tf.nn.softmax_cross_entropy_with_logits(cnn_model, model_output)
