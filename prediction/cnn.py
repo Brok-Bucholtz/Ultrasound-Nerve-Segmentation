@@ -1,4 +1,5 @@
 import tensorflow as tf
+import math
 
 
 def _create_maxpool_layer(layer_input, weight, bias):
@@ -21,6 +22,35 @@ def _create_transpose_layer(layer_input, output_shape, transpose_weight, bias):
         strides=[1, 2, 2, 1])
     layer = tf.nn.bias_add(layer, bias)
     return tf.nn.relu(layer)
+
+
+def _filters_to_images(filters, image_count):
+    images = []
+
+    # Get the first <image_count> images of <filters>
+    for filter_i in xrange(image_count):
+        # Get dimensions
+        filter_x = int(filters.get_shape()[1])
+        filter_y = int(filters.get_shape()[2])
+        channels = int(filters.get_shape()[3])
+        channel_factor_pairs = [(i, channels / i) for i in range(1, int(channels**0.5)+1) if channels % i == 0]
+        channel_y = channel_factor_pairs[len(channel_factor_pairs)-1][0]
+        channel_x = channel_factor_pairs[len(channel_factor_pairs)-1][1]
+
+        # Get ith filter
+        image = tf.slice(filters, (filter_i, 0, 0, 0), (1, -1, -1, -1))
+        image = tf.reshape(image, (filter_x, filter_y, channels))
+
+        # Break up filter into its different channels for viewing
+        filter_y += 4
+        filter_x += 4
+        image = tf.image.resize_image_with_crop_or_pad(image, filter_x, filter_y)
+        image = tf.reshape(image, (filter_x, filter_y, channel_x, channel_y))
+        image = tf.transpose(image, (2, 0, 3, 1))
+
+        images.append(tf.reshape(image, (channel_x * filter_x, channel_y * filter_y, 1)))
+
+    return images
 
 
 def create_cnn(model_input, dropout, image_shape, n_classes):
@@ -101,5 +131,10 @@ def create_cnn(model_input, dropout, image_shape, n_classes):
 
     # Tensorboard
     tf.image_summary('Input', model_input)
+    tf.image_summary('conv1', _filters_to_images(conv1, 3))
+    tf.image_summary('conv5', _filters_to_images(conv5, 3))
+    tf.image_summary('conv6', _filters_to_images(tf.reshape(conv6, [-1, 4, 4, 128]), 3))
+    tf.image_summary('conv9', _filters_to_images(tf.reshape(conv9, [-1, 32, 32, 16]), 3))
+    tf.image_summary('fc1', _filters_to_images(tf.reshape(fc1, [-1, 1, 1, 16]), 3))
 
     return out
