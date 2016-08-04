@@ -56,8 +56,7 @@ def _plot_learning_curve(model, features, labels, title='', scoring=None):
 
 
 def _run_knn_detection():
-    x_all, y_all = get_detection_data()
-    x_train, x_test, y_train, y_test = cross_validation.train_test_split(x_all, y_all, test_size=0.25)
+    x_train, x_test, y_train, y_test = cross_validation.train_test_split(*get_detection_data(), test_size=0.25)
     clf = KNeighborsClassifier(2, 'distance')
 
     print "Training KNN..."
@@ -68,8 +67,7 @@ def _run_knn_detection():
 
 
 def _run_svm_detection():
-    x_all, y_all = get_detection_data()
-    x_train, x_test, y_train, y_test = cross_validation.train_test_split(x_all, y_all, test_size=0.25)
+    x_train, x_test, y_train, y_test = cross_validation.train_test_split(*get_detection_data(), test_size=0.25)
     clf = SVC(C=9)
 
     print "Training SVM..."
