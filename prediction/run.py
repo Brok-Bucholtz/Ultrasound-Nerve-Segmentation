@@ -56,7 +56,7 @@ def _plot_learning_curve(model, features, labels, title='', scoring=None):
 
 
 def _run_knn_detection(x_train, x_test, y_train, y_test, accuracy_function):
-    clf = KNeighborsClassifier(2, 'distance')
+    clf = KNeighborsClassifier(weights='distance')
 
     print "Training KNN..."
     _plot_learning_curve(clf, x_train, y_train, 'KNN-Learning-Curve', make_scorer(accuracy_function))
