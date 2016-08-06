@@ -21,7 +21,8 @@ def _get_rootname(filename):
 
 
 def _get_feature_label_images():
-    IMAGE_SHAPE = (58, 42)
+    IMAGE_RESIZE_SHAPE = (58, 42)
+    IMAGE_RESAMPLING = Image.BICUBIC
     ARRAY_FEATURE_PATH = './data/train/features.npy'
     ARRAY_LABEL_PATH = './data/train/labels.npy'
     TRAIN_GLOB_PATH = './data/train/*.tif'
@@ -29,16 +30,16 @@ def _get_feature_label_images():
     if not isfile(ARRAY_FEATURE_PATH) or not isfile(ARRAY_LABEL_PATH):
         image_paths = [filename for filename in glob.glob(TRAIN_GLOB_PATH) if not _get_rootname(filename).endswith('_mask')]
         with tqdm(desc='Reading Images from Disk', total=len(image_paths), unit='image') as progress_bar:
-            features = np.empty((len(image_paths), IMAGE_SHAPE[0]*IMAGE_SHAPE[1]), dtype=np.float32)
-            labels = np.empty((len(image_paths), IMAGE_SHAPE[0]*IMAGE_SHAPE[1]), dtype=np.bool)
+            features = np.empty((len(image_paths), IMAGE_RESIZE_SHAPE[0]*IMAGE_RESIZE_SHAPE[1]), dtype=np.float32)
+            labels = np.empty((len(image_paths), IMAGE_RESIZE_SHAPE[0]*IMAGE_RESIZE_SHAPE[1]), dtype=np.bool)
 
             for file_i, filename in enumerate(image_paths):
                 progress_bar.update()
                 with Image.open(filename) as image:
-                    image = image.resize(IMAGE_SHAPE)
+                    image = image.resize(IMAGE_RESIZE_SHAPE, IMAGE_RESAMPLING)
                     features[file_i] = [_normalization_pixel(pixel) for pixel in image.getdata()]
                 with Image.open(join(dirname(filename), _get_rootname(filename)+'_mask.tif')) as image:
-                    image = image.resize(IMAGE_SHAPE)
+                    image = image.resize(IMAGE_RESIZE_SHAPE, IMAGE_RESAMPLING)
                     labels[file_i] = image.getdata()
 
             with open(ARRAY_FEATURE_PATH, 'a') as feature_file:
