@@ -130,20 +130,12 @@ def _run_cnn_detection(x_train, x_test, y_train, y_test, accuracy_function):
 def run():
     x_train, x_test, y_train, y_test = cross_validation.train_test_split(*get_detection_data(), test_size=0.25)
     accuracy_function = f1_score
-    # KNN Detection Model
-    # F1 score for training set: 0.997677119628
-    # F1 score for test set: 0.696686491079
-    _run_knn_detection(x_train, x_test, y_train, y_test, accuracy_function)
 
-    # SVM Detection Model
-    # F1 score for training set: 0.770956684325
-    # F1 score for test set: 0.682745825603
+    _run_knn_detection(x_train, x_test, y_train, y_test, accuracy_function)
     _run_svm_detection(x_train, x_test, y_train, y_test, accuracy_function)
 
-    # CNN Detection Model
-    # F1 score for training set: 0.535408901557
-    # F1 score for test set: 0.577373211964
-    _run_cnn_detection(x_train, x_test, y_train, y_test, accuracy_function)
+    # CNN still in development
+    #_run_cnn_detection(x_train, x_test, y_train, y_test, accuracy_function)
 
 
 if __name__ == '__main__':
