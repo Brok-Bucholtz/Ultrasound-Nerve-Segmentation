@@ -1,5 +1,6 @@
 import tensorflow as tf
 from sklearn import cross_validation
+from sklearn.dummy import DummyClassifier
 from sklearn.learning_curve import learning_curve
 from sklearn.metrics import f1_score, make_scorer
 from sklearn.neighbors import KNeighborsClassifier
@@ -75,6 +76,15 @@ def _run_svm_detection(x_train, x_test, y_train, y_test, accuracy_function):
     print "Score for test set: {}".format(accuracy_function(y_test, clf.predict(x_test)))
 
 
+def _run_dummy_detection(x_train, x_test, y_train, y_test):
+    clf = DummyClassifier(strategy='most_frequent')
+
+    print "Training Dummy..."
+    clf.fit(x_train, y_train)
+    print "Predicting Test Set..."
+    print "Score for test set: {}".format(clf.score(x_test, y_test))
+
+
 def _run_cnn_detection(x_train, x_test, y_train, y_test, accuracy_function):
     SUMMARY_PATH = '/tmp/ultrasound-never-segmentation/summary'
     learning_rate = 0.001
@@ -131,6 +141,7 @@ def run():
     x_train, x_test, y_train, y_test = cross_validation.train_test_split(*get_detection_data(), test_size=0.25)
     accuracy_function = f1_score
 
+    _run_dummy_detection(x_train, x_test, y_train, y_test)
     _run_knn_detection(x_train, x_test, y_train, y_test, accuracy_function)
     _run_svm_detection(x_train, x_test, y_train, y_test, accuracy_function)
 
